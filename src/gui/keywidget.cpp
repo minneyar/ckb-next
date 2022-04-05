@@ -412,7 +412,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
                 decPainter.drawRect(QRectF(x * scale, y * scale, w * scale, h * scale));
             else if (model == KeyMap::K70_TKL && key.friendlyName() == "Logo")
                 drawLogo(&key, &decPainter, offX , offY, scale);
-            else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2 || model == KeyMap::K70_TKL) && key.friendlyName() == "Logo 1")
+            else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2) && key.friendlyName() == "Logo 1")
                     drawLogo(&key, &decPainter, offX , offY, scale);
             else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2) && key.friendlyName() == "Logo 2")
                     decPainter.drawRect(QRectF((key.x + offX - key.width / 2.f - 2.f) * scale, y * scale, (key.width + 4.f) * scale, h * scale));
