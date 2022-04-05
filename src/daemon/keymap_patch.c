@@ -25,6 +25,13 @@ keypatch m55patch[] = {
 };
 #define M55PATCH_LEN sizeof(m55patch)/sizeof(*m55patch)
 
+keypatch k70tklpatch[] = {
+    { 1, "logo",    1, KEY_CORSAIR },
+    { 114, "lock",    114, KEY_CORSAIR },
+    { 128, "profswitch",    128, KEY_CORSAIR },
+};
+#define K70TKLPATCH_LEN sizeof(k70tklpatch)/sizeof(*k70tklpatch)
+
 keypatch m95patch[] = {
     { 208, "mouse7", -1, SCAN_MOUSE | BTN_BACK },
     { 209, "mouse6", -1, SCAN_MOUSE | BTN_FORWARD },
@@ -90,6 +97,7 @@ keypatches mappatches[] = {
     { V_CORSAIR, P_K65_LEGACY,   k65patch,       K65PATCH_LEN },
     { V_CORSAIR, P_K63_NRGB,     k63patch,       K63PATCH_LEN },
     { V_CORSAIR, P_M55_RGB_PRO,  m55patch,       M55PATCH_LEN },
+    { V_CORSAIR, P_K70_TKL,      k70tklpatch,    K70TKLPATCH_LEN },
     { V_CORSAIR, P_M95,          m95patch,       M95PATCH_LEN },
     { V_CORSAIR, P_IRONCLAW_W_U, icwpatch,       ICWPATCH_LEN },
     { V_CORSAIR, P_HARPOON_WL_U, harpoonwlpatch, HARPOONWLPATCH_LEN },

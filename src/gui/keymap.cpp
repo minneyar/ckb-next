@@ -242,6 +242,17 @@ static void patchABNT2(QHash<QString, Key>& map){
 #define K60_HEIGHT      62
 
 
+static const Key K70TklTopRow[] = {
+    {0, "Stop", "stop", K70_X_START - 37, 0, 12, 8, true, true},
+    {0, "Previous", "prev", K70_X_START - 26, 0, 12, 8, true, true},
+    {0, "Play/Pause", "play", K70_X_START - 15, 0, 12, 8, true, true},
+    {0, "Next", "next", K70_X_START - 4, 0, 12, 8, true, true},
+    {0, "Logo", "logo", 140 - K70_X_START, 0, 12, 12, true, false},
+    {0, "Profile Switch", "profswitch", 178 - K70_X_START, 0, 12, 8, true, true},
+    {0, "Mute", "mute", 222 - K70_X_START, 0, 12, 8, true, true},
+};
+#define K70_TKL_TOP_COUNT (sizeof(K70TklTopRow) / sizeof(Key))
+
 static const Key K68TopRow[] = {
     {0, "Volume Down", "voldn", 285 - K70_X_START, 0, 13, 8, true, true}, {0, "Volume Up", "volup", 297 - K70_X_START, 0, 13, 8, true, true},
 };
@@ -730,6 +741,29 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         map["mute"].x -= 10;
         map["volup"].x -= 10;
         map["voldn"].x -= 10;
+        break;
+    }
+    case KeyMap::K70_TKL:{
+        map = getMap(KeyMap::K70, layout);
+        // Very similar to the K63 but with slightly different media button positions
+        QMutableHashIterator<QString, Key> i(map);
+        while(i.hasNext()){
+            i.next();
+            if(i.value().x >= K65_WIDTH)
+                i.remove();
+        }
+        for(const Key* key = K70TklTopRow; key < K70TklTopRow + K70_TKL_TOP_COUNT; key++)
+            map[key->name] = *key;
+
+        map.remove("rwin");
+        map["fn"] = KStrafeKeys[3];
+        map["fn"].x -= 12;
+        map["light"].x = 190 - K70_X_START;
+        map["light"].height = 8;
+        map["lock"].x = 202 - K70_X_START;
+        map["lock"].height = 8;
+
+        // Done!
         break;
     }
     case KeyMap::STRAFE_MK2:{
@@ -1336,6 +1370,8 @@ KeyMap::Model KeyMap::getModel(const QString& name){
         return ST100;
     if(lower == "k70mk2")
         return K70MK2;
+    if(lower == "k70tkl")
+        return K70_TKL;
     if(lower == "strafe_mk2")
         return STRAFE_MK2;
     if(lower == "m65e")
@@ -1401,6 +1437,8 @@ QString KeyMap::getModel(KeyMap::Model model){
         return "st100";
     case K70MK2:
         return "k70mk2";
+    case K70_TKL:
+        return "k70tkl";
     case STRAFE_MK2:
         return "strafe_mk2";
     case M65E:
@@ -1434,6 +1472,7 @@ int KeyMap::modelWidth(Model model){
     case K60:
         return K60_WIDTH;
     case K63:
+    case K70_TKL:
         return K63_WIDTH;
     case K65:
         return K65_WIDTH;
@@ -1485,6 +1524,7 @@ int KeyMap::modelHeight(Model model){
     case K68:
     case K70:
     case K70MK2:
+    case K70_TKL:
     case K95:
     case K95L:
     case STRAFE:

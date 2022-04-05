@@ -265,7 +265,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
                     bgPainter.setOpacity(0.7);
             }
         }
-        if((model != KeyMap::STRAFE && model != KeyMap::K95P && model != KeyMap::K70MK2 && model != KeyMap::STRAFE_MK2) && (!strcmp(key.name, "mr") || !strcmp(key.name, "m1") || !strcmp(key.name, "m2") || !strcmp(key.name, "m3")
+        if((model != KeyMap::STRAFE && model != KeyMap::K95P && model != KeyMap::K70MK2 && model != KeyMap::STRAFE_MK2 && model != KeyMap::K70_TKL) && (!strcmp(key.name, "mr") || !strcmp(key.name, "m1") || !strcmp(key.name, "m2") || !strcmp(key.name, "m3")
                 || !strcmp(key.name, "light") || !strcmp(key.name, "lock") || !strcmp(key.name, "lghtpgm") || (model == KeyMap::K65 && !strcmp(key.name, "mute")))){
             // Not all devices have circular buttons
             x += w / 8.f;
@@ -293,7 +293,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
                 drawTopLeftCorner(&bgPainter, x, y, w, h, scale);
             } else
                 bgPainter.drawRect(QRectF(x * scale, y * scale, w * scale, h * scale));
-        } else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2) && key.friendlyName().startsWith("Logo")) {
+        } else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2 || model == KeyMap::K70_TKL) && key.friendlyName().startsWith("Logo")) {
             w += 10.f;
             x -= 5.f;
             bgPainter.drawRect(QRectF(x * scale, y * scale, w * scale, h * scale));
@@ -410,7 +410,9 @@ void KeyWidget::paintEvent(QPaintEvent*){
                     decPainter.drawRect(QRectF(kx * scale, ky * scale, kw * scale, kh * scale));
             } else if (model == KeyMap::K55)
                 decPainter.drawRect(QRectF(x * scale, y * scale, w * scale, h * scale));
-            else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2) && key.friendlyName() == "Logo 1")
+            else if (model == KeyMap::K70_TKL && key.friendlyName() == "Logo")
+                drawLogo(&key, &decPainter, offX , offY, scale);
+            else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2 || model == KeyMap::K70_TKL) && key.friendlyName() == "Logo 1")
                     drawLogo(&key, &decPainter, offX , offY, scale);
             else if ((model == KeyMap::K70MK2 || model == KeyMap::STRAFE_MK2) && key.friendlyName() == "Logo 2")
                     decPainter.drawRect(QRectF((key.x + offX - key.width / 2.f - 2.f) * scale, y * scale, (key.width + 4.f) * scale, h * scale));
