@@ -308,6 +308,9 @@ static int _mkdevpath(usbdevice* kb){
         printnode(dpath, dpistr);
 
         // Write the device's features
+        // NOTE: Features that have their own files, which can be blank to indicate lack of support should NOT be added here.
+        // It is implied that if the file is blank or does not exist, then the feature is not supported.
+        // FIXME: Apply this to pollrate after a few versions (the flag is only kept for backwards compat)
         char fpath[sizeof(path) + 9];
         snprintf(fpath, sizeof(fpath), "%s/features", path);
         FILE* ffile = fopen(fpath, "w");
@@ -325,8 +328,6 @@ static int _mkdevpath(usbdevice* kb){
                 fputs(" bind", ffile);
             if(HAS_FEATURES(kb, FEAT_NOTIFY))
                 fputs(" notify", ffile);
-            if(HAS_FEATURES(kb, FEAT_FWVERSION))
-                fputs(" fwversion", ffile);
             if(HAS_FEATURES(kb, FEAT_FWUPDATE))
                 fputs(" fwupdate", ffile);
             if(HAS_FEATURES(kb, FEAT_HWLOAD))
@@ -338,6 +339,10 @@ static int _mkdevpath(usbdevice* kb){
             if(HAS_FEATURES(kb, FEAT_BATTERY))
                 fputs(" battery", ffile);
 
+            if(kb->brightness_mode == BRIGHTNESS_HARDWARE_COARSE)
+                fputs(" hwbright_coarse", ffile);
+            else if(kb->brightness_mode == BRIGHTNESS_HARDWARE_FINE)
+                fputs(" hwbright_fine", ffile);
             fputc('\n', ffile);
             fclose(ffile);
             check_chmod(fpath, S_GID_READ);
@@ -386,13 +391,63 @@ int rmdevpath(usbdevice* kb){
     return 0;
 }
 
+static inline uchar FWBcdToBin(const uchar v){
+    return ((v >> 4) * 10) + (v & 0xF);
+}
+
+static inline void FWtoThreeSegments(FILE* fwfile, uint32_t ver, usbdevice* kb){
+    // If the device doesn't support reading fw ver, or the version is UINT32_MAX (which means we couldn't read the version), leave blank
+    // Latter happens when trying to request a bragi radio version for a device that doesn't have one
+    // 0 is a valid fw version (when app is corrupt)
+    if(!HAS_FEATURES(kb, FEAT_FWVERSION) || ver == UINT32_MAX)
+        return;
+
+    // NXP/Legacy devices use BCD, but also bragi devices if we can't read the fw ver (and only have bcdDevice)
+    // At the moment we overwrite the bcdDevice for bragi, so we do not need to handle it
+    // If in the future we encounter a bragi device which does not report an APP fw ver, this will need to be changed
+    if(kb->protocol == PROTO_BRAGI)
+        fprintf(fwfile, "%hhu.%hhu.%hhu", ver >> 16 & 0xFF, ver >> 8 & 0xFF, ver & 0xFF);
+    else
+        fprintf(fwfile, "%hhu.%hhu", FWBcdToBin(ver >> 8 & 0xFF), FWBcdToBin(ver & 0xFF));
+}
+
+static const char* const pollrate_to_str[POLLRATE_COUNT] = {
+    [POLLRATE_8MS] = "8 ms",
+    [POLLRATE_4MS] = "4 ms",
+    [POLLRATE_2MS] = "2 ms",
+    [POLLRATE_1MS] = "1 ms",
+    [POLLRATE_05MS] = "0.5 ms",
+    [POLLRATE_025MS] = "0.25 ms",
+    [POLLRATE_01MS] = "0.1 ms",
+};
+
 int mkfwnode(usbdevice* kb){
     int index = INDEX_OF(kb, keyboard);
     char fwpath[DEVPATH_LEN + 12];
     snprintf(fwpath, sizeof(fwpath), "%s%d/fwversion", devpath, index);
     FILE* fwfile = fopen(fwpath, "w");
     if(fwfile){
-        fprintf(fwfile, "%04x", kb->fwversion);
+        // Start with APP ver
+        // Force 0 if we require a fw update
+        if(NEEDS_FW_UPDATE(kb))
+            FWtoThreeSegments(fwfile, 0, kb);
+        else
+            FWtoThreeSegments(fwfile, kb->fwversion, kb);
+        fputc('\n', fwfile);
+
+        // Followed by BLD ver
+        FWtoThreeSegments(fwfile, kb->bldversion, kb);
+        fputc('\n', fwfile);
+
+        // Followed by WL radio APP ver
+        FWtoThreeSegments(fwfile, kb->radioappversion, kb);
+        fputc('\n', fwfile);
+
+        // Followed by WL radio BLD ver
+        FWtoThreeSegments(fwfile, kb->radiobldversion, kb);
+        fputc('\n', fwfile);
+
+        // Closing newline
         fputc('\n', fwfile);
         fclose(fwfile);
         check_chmod(fwpath, S_GID_READ);
@@ -406,7 +461,11 @@ int mkfwnode(usbdevice* kb){
     snprintf(ppath, sizeof(ppath), "%s%d/pollrate", devpath, index);
     FILE* pfile = fopen(ppath, "w");
     if(pfile){
-        fprintf(pfile, "%d ms", kb->pollrate);
+        if(kb->pollrate != POLLRATE_UNKNOWN)
+            fputs(pollrate_to_str[kb->pollrate], pfile);
+        fputc('\n', pfile);
+        if(kb->maxpollrate != POLLRATE_UNKNOWN)
+            fputs(pollrate_to_str[kb->maxpollrate], pfile);
         fputc('\n', pfile);
         fclose(pfile);
         check_chmod(ppath, S_GID_READ);

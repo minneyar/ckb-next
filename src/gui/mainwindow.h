@@ -25,7 +25,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(const bool silent, QWidget *parent = nullptr);
     ~MainWindow();
 
     static MainWindow* mainWindow;
@@ -77,7 +77,7 @@ private slots:
     void updateVersion();
     void checkFwUpdates();
     void timerTick();
-    void showFwUpdateNotification(QWidget* widget, float version);
+    void showFwUpdateNotification(QWidget* widget, CkbVersionNumber version);
     void QSignalHandler();
     void checkedForNewVer(const QString& ver, const QString& changelog);
 #if defined(Q_OS_MACOS) && !defined(OS_MAC_LEGACY)

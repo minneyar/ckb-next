@@ -188,11 +188,12 @@ void* os_inputmain(void* context){
         /// Broken devices or shutting down the entire system leads to closing the device and finishing this thread.
         int res = ioctl(fd, USBDEVFS_REAPURB, &urb);
         if (res) {
+            int ioctlerrno = errno;
             wait_until_suspend_processed();
-            if (errno == ENODEV || errno == ENOENT || errno == ESHUTDOWN)
+            if (ioctlerrno == ENODEV || ioctlerrno == ENOENT || ioctlerrno == ESHUTDOWN)
                 // Stop the thread if the handle closes
                 break;
-            else if(errno == EPIPE && urb){
+            else if(ioctlerrno == EPIPE && urb){
                 /// If just an EPIPE ocurred, give the device a CLEAR_HALT and resubmit the URB.
                 ioctl(fd, USBDEVFS_CLEAR_HALT, &urb->endpoint);
                 // Re-submit the URB
@@ -377,13 +378,14 @@ int os_resetusb(usbdevice* kb, const char* file, int line) {
 void strtrim(char* string){
     // Find first non-space
     char* first = string;
-    for(; *first != 0; first++){
+    while(*first){
         if(!isspace(*first))
             break;
+        first++;
     }
 
     // If we reached the end and didn't find anything, blank out the string
-    if(first[1] == '\0'){
+    if(*first == '\0'){
         string[0] = '\0';
         return;
     }
@@ -397,7 +399,7 @@ void strtrim(char* string){
     last[1] = '\0';
 
     if(first != string)
-        memmove(string, first, last - first);
+        memmove(string, first, last - first + 2);
 }
 
 /// \brief .
@@ -423,7 +425,7 @@ int os_setupusb(usbdevice* kb) {
     /// - Copy firmware version (needed to determine USB protocol)
     const char* firmware = udev_device_get_sysattr_value(dev, "bcdDevice");
     if(firmware)
-        sscanf(firmware, "%hx", &kb->fwversion);
+        sscanf(firmware, "%"SCNx32, &kb->fwversion);
     else
         kb->fwversion = 0;
     int index = INDEX_OF(kb, keyboard);
@@ -747,22 +749,28 @@ void* suspend_check() {
     pthread_mutex_lock(&suspend_check_mutex);
     prev_suspend_check_time = current_time;
     pthread_mutex_unlock(&suspend_check_mutex);
+    bool woke_up = false;
     while(suspend_run){
         clock_nanosleep(CLOCK_MONOTONIC, 0, &(struct timespec) {.tv_sec = 2}, NULL);
         current_time = get_clock_monotonic_seconds();
 
         if (prev_suspend_check_time + 4 < current_time) {
             graceful_suspend_resume();
-            reactivate_devices();
             // Some time might have passed, get a fresh timestamp so other
             // threads can continue
             current_time = get_clock_monotonic_seconds();
+            woke_up = true;
         }
 
         pthread_mutex_lock(&suspend_check_mutex);
         prev_suspend_check_time = current_time;
         pthread_cond_broadcast(&suspend_check_cond);
         pthread_mutex_unlock(&suspend_check_mutex);
+
+        if(woke_up){
+            reactivate_devices();
+            woke_up = false;
+        }
     }
     return NULL;
 }

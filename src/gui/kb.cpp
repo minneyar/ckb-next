@@ -15,11 +15,30 @@ static QMutex notifyPathMutex;
 int Kb::_frameRate = 30, Kb::_scrollSpeed = 0;
 bool Kb::_dither = false, Kb::_mouseAccel = true;
 
+static inline Kb::pollrate_t stringToPollrate(const QString& str){
+    if(str == QLatin1String("8 ms"))
+        return Kb::POLLRATE_8MS;
+    else if(str == QLatin1String("4 ms"))
+        return Kb::POLLRATE_4MS;
+    else if(str == QLatin1String("2 ms"))
+        return Kb::POLLRATE_2MS;
+    else if(str == QLatin1String("1 ms"))
+        return Kb::POLLRATE_1MS;
+    else if(str == QLatin1String("0.5 ms"))
+        return Kb::POLLRATE_05MS;
+    else if(str == QLatin1String("0.25 ms"))
+        return Kb::POLLRATE_025MS;
+    else if(str == QLatin1String("0.1 ms"))
+        return Kb::POLLRATE_01MS;
+    else
+        return Kb::POLLRATE_UNKNOWN;
+}
+
 Kb::Kb(QObject *parent, const QString& path) :
-    QThread(parent), features(QStringList()), firmware("N/A"), pollrate("N/A"), monochrome(false), hwload(false), adjrate(false),
-    batteryTimer(0), batteryIcon(0), showBatteryIndicator(false), devpath(path), cmdpath(path + "/cmd"), notifyPath(path + "/notify1"), macroPath(path + "/notify2"),
-    _currentProfile(0), _currentMode(0), _model(KeyMap::NO_MODEL), batteryLevel(0), batteryStatus(BatteryStatus::BATT_STATUS_UNKNOWN),
-    _hwProfile(0), prevProfile(0), prevMode(0),
+    QThread(parent), features(QStringList()), pollrate(POLLRATE_UNKNOWN), maxpollrate(POLLRATE_UNKNOWN), monochrome(false), hwload(false), adjrate(false), firmware(),
+    batteryTimer(nullptr), batteryIcon(nullptr), showBatteryIndicator(false), devpath(path), cmdpath(path + "/cmd"), notifyPath(path + "/notify1"), macroPath(path + "/notify2"),
+    _currentProfile(nullptr), _currentMode(nullptr), _model(KeyMap::NO_MODEL), batteryLevel(0), batteryStatus(BatteryStatus::BATT_STATUS_UNKNOWN),
+    _hwProfile(nullptr), prevProfile(nullptr), prevMode(nullptr),
     cmd(cmdpath), notifyNumber(1), macroNumber(2), _needsSave(false), _layout(KeyMap::NO_LAYOUT), _maxDpi(0),
     deviceIdleTimer()
 {
@@ -63,21 +82,27 @@ Kb::Kb(QObject *parent, const QString& path) :
     }
     if (usbSerial == "")
         usbSerial = "Unknown-" + usbModel;
-    if (features.contains("fwversion") && fwpath.open(QIODevice::ReadOnly)) {
-        firmware = fwpath.read(100);
-        firmware = QString::number(firmware.trimmed().toInt() / 100., 'f', 2);
+    if (fwpath.open(QIODevice::ReadOnly)) {
+        firmware.parse(fwpath.read(100));
         fwpath.close();
         if (prodpath.open(QIODevice::ReadOnly)) {
-            productID = prodpath.read(4).toUShort(0, 16);
+            productID = prodpath.read(4).toUShort(nullptr, 16);
             // qInfo() << "ProductID of device is" << productID;
         } else {
             qCritical() << "could not open" << prodpath.fileName();
         }
     }
-    if (features.contains("pollrate") && ppath.open(QIODevice::ReadOnly)){
-        pollrate = ppath.read(100);
-        pollrate = pollrate.trimmed();
+    if (ppath.open(QIODevice::ReadOnly)){
+        QStringList sl = QString(ppath.read(100)).trimmed().split(QLatin1Char('\n'));
         ppath.close();
+        if(sl.length() > 0)
+            pollrate = stringToPollrate(sl.at(0));
+        if(sl.length() > 1)
+            maxpollrate = stringToPollrate(sl.at(1));
+
+        if(pollrate > maxpollrate)
+                maxpollrate = POLLRATE_UNKNOWN;
+
         if(features.contains("adjrate"))
             adjrate = true;
     }
@@ -289,7 +314,7 @@ void Kb::load(){
     _needsSave = false;
     CkbSettings settings(prefsPath);
     // Read profiles
-    KbProfile* newCurrentProfile = 0;
+    KbProfile* newCurrentProfile = nullptr;
     QString current = settings.value("CurrentProfile").toString().trimmed().toUpper();
     foreach(QString guid, settings.value("Profiles").toString().split(" ")){
         guid = guid.trimmed().toUpper();
@@ -317,8 +342,10 @@ void Kb::load(){
             demoProfile = ":/txt/demoprofile_st100.ini";
         else if(map.model() == KeyMap::NIGHTSWORD)
             demoProfile = ":/txt/demoprofile_nightsword.ini";
+        else if(map.model() == KeyMap::K55PRO)
+            demoProfile = ":/txt/demoprofile_k55pro.ini";
         QSettings demoSettings(demoProfile, QSettings::IniFormat, this);
-        CkbSettings cSettings(demoSettings);
+        CkbDemoSettings cSettings(demoSettings);
         KbProfile* demo = new KbProfile(this, map, cSettings, "{BA7FC152-2D51-4C26-A7A6-A036CC93D924}");
         _profiles.append(demo);
         setCurrentProfile(demo);
@@ -480,7 +507,7 @@ void Kb::frameUpdate(){
 
 void Kb::deletePrevious(){
     disconnect(prevMode, SIGNAL(destroyed()), this, SLOT(deletePrevious()));
-    prevMode = 0;
+    prevMode = nullptr;
 }
 
 void Kb::hwProfile(KbProfile* newHwProfile){
@@ -495,7 +522,7 @@ void Kb::hwProfile(KbProfile* newHwProfile){
 
 void Kb::deleteHw(){
     disconnect(_hwProfile, SIGNAL(destroyed()), this, SLOT(deleteHw()));
-    _hwProfile = 0;
+    _hwProfile = nullptr;
 }
 
 void Kb::run(){
@@ -573,7 +600,7 @@ void Kb::readNotify(const QString& line){
         // Find the hardware profile in the list of profiles
         QString guid = components[1];
         QString modified = components[2];
-        KbProfile* newProfile = 0;
+        KbProfile* newProfile = nullptr;
         foreach(KbProfile* profile, _profiles){
             if(profile->id().guid == guid){
                 newProfile = profile;
@@ -625,7 +652,7 @@ void Kb::readNotify(const QString& line){
             QString guid = components[3];
             QString modified = components[4];
             // Look for this mode in the hardware profile
-            KbMode* hwMode = 0;
+            KbMode* hwMode = nullptr;
             bool isUpdated = false;
             foreach(KbMode* kbMode, _hwProfile->modes()){
                 if(kbMode->id().guid == guid){

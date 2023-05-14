@@ -44,9 +44,12 @@ const dpi_list mouse_dpi_list[] = {
 const device_desc models[] = {
     // Keyboards
     { V_CORSAIR, P_K55, },
+    { V_CORSAIR, P_K55_PRO, },
+    { V_CORSAIR, P_K55_PRO_XT, },
     { V_CORSAIR, P_K60_PRO_RGB, },
     { V_CORSAIR, P_K60_PRO_RGB_LP, },
     { V_CORSAIR, P_K60_PRO_RGB_SE, },
+    { V_CORSAIR, P_K60_PRO_MONO, },
     { V_CORSAIR, P_K63_NRGB, },
     { V_CORSAIR, P_K63_NRGB_WL, },
     { V_CORSAIR, P_K63_NRGB_WL2, },
@@ -196,14 +199,18 @@ const char* product_str(ushort product){
         return "k65";
     if(product == P_K66)
         return "k66";
-    if(product == P_K63_NRGB || product == P_K63_NRGB_WL || product == P_K63_NRGB_WL2 || product == P_K63_NRGB_WL3 || product == P_K63_NRGB_WL4)
+    if(product == P_K63_NRGB)
         return "k63";
-    if(product == P_K60_PRO_RGB || product == P_K60_PRO_RGB_LP || product == P_K60_PRO_RGB_SE)
+    if(product == P_K63_NRGB_WL || product == P_K63_NRGB_WL2 || product == P_K63_NRGB_WL3 || product == P_K63_NRGB_WL4)
+        return "k63_wireless";
+    if(product == P_K60_PRO_RGB || product == P_K60_PRO_RGB_LP || product == P_K60_PRO_RGB_SE || product == P_K60_PRO_MONO)
         return "k60";
-    if(product == P_K57_U || product == P_K57_D)
+    if(product == P_K57_U || product == P_K57_D || product == P_K55_PRO_XT)
         return "k57_wireless";
     if(product == P_K55)
         return "k55";
+    if(product == P_K55_PRO)
+        return "k55pro";
     if(product == P_STRAFE || product == P_STRAFE_NRGB || product == P_STRAFE_NRGB_2)
         return "strafe";
     if(product == P_STRAFE_MK2)
@@ -433,12 +440,15 @@ static void* _setupusb(void* context){
     if(IS_MONOCHROME(vendor, product))
         kb->features |= FEAT_MONOCHROME;
     if(IS_DONGLE(kb))
-        kb->features |= FEAT_DONGLE;
+        kb->features |= (FEAT_DONGLE | FEAT_FWVERSION);
     if(IS_WIRELESS_DEV(kb)){
         kb->features |= FEAT_WIRELESS;
         if((kb->protocol == PROTO_BRAGI && !IS_DONGLE(kb)) || kb->protocol != PROTO_BRAGI)
             kb->features |= FEAT_BATTERY;
     }
+    // Disable FWUPDATE for all bragi devices
+    if(kb->protocol == PROTO_BRAGI)
+        kb->features &= ~FEAT_FWUPDATE;
 
     kb->usbdelay = USB_DELAY_DEFAULT;
 
@@ -530,39 +540,7 @@ static void* _setupusb(void* context){
     /// which first performs an unlock on the imutex.
     /// This is interesting because the next statement is exactly this: An unlock on the imutex.
     queued_mutex_unlock(imutex(kb));
-    ///
-    /// - Via vtable the \a kb->start() function is called next.
-    /// This is the same for a mouse and an RGB keyboard: start_dev(),
-    /// for a non RGB keyboard it is start_kb_nrgb().
-    /// \n First parameter is as always kb, second is 0 (makeactive = false).
-    ///   - In start_kb_nrgb() set the keyboard into a so-called software mode (NK95_HWOFF)
-    /// via ioctl with \c usbdevfs_ctrltransfer in function _nk95cmd(),
-    /// which will in turn is called via macro nk95cmd() via start_kb_nrgb().
-    /// \n Then two dummy values (active and pollrate) are set in the kb structure and ready.
-    ///   - start_dev() does a bit more - because this function is for both mouse and keyboard.
-    /// start_dev() calls - after setting an extended timeout parameter - _start_dev(). Both are located in device.c.
-    ///   - First, _start_dev() attempts to determine the firmware version of the device,
-    /// but only if two conditions are met:
-    /// hwload-mode is not null (then hw-loading is disabled)
-    /// and the device has the FEAT_HWLOAD feature.
-    /// Then the firmware and the poll rate are fetched via getfwversion().
-    /// \n If hwload_mode is set to "load only once" (==1), then the HWLOAD feature is masked, so that no further reading can take place.
-    ///   - Now check if device needs a firmware update. If so, set it up and leave the function without error.
-    ///   - Else load the hardware profile from device if the hw-pointer is not set and hw-loading is possible and allowed.
-    /// \n Return error if mode == 2 (load always) and loading got an error.
-    /// Else mask the HWLOAD feature, because hwload must be 1 and the error couold be a repeated hw-reading.
-    /// \n <b>Puh, that is real Horror code. It seems to be not faulty, but completely unreadable.</b>
-    ///
-    ///   - Finally, the second parameter of _startdev() is used to check whether the device is to be activated.
-    /// Depending on the parameter, the active or the idle-member in the correspondig vtable is called.
-    /// These are device-dependent again:
-    /// Device | active | idle
-    /// ------ | ------ | ----
-    /// RGB Keyboard | cmd_active_kb() means: start the device with a lot of kb-specific initializers (software controlled mode) | cmd_idle_kb() set the device with a lot of kb-specific initializers into the hardware controlled mode)
-    /// non RGB Keyboard | cmd_io_none() means: Do nothing | cmd_io_none() means: Do nothing
-    /// Mouse | cmd_active_mouse() similar to cmd_active_kb() | cmd_idle_mouse similar to cmd_idle_kb()
-    ///
-    /// - If either \a start() succeeded or the next following usb_tryreset(), it goes on, otherwise again a hard abort occurs.
+
     if(vt->start(kb, 0) && usb_tryreset(kb))
         goto fail_noinput;
     ///
@@ -712,11 +690,6 @@ int usb_tryreset(usbdevice* kb){
     return -1;
 }
 
-///
-/// hwload_mode is defined in device.c
-///
-extern int hwload_mode;
-
 // Wrapper around the vtable write() function for error handling and recovery
 int _usbsend(usbdevice* kb, void* messages, size_t msg_len, int count, const char* file, int line){
     int total_sent = 0;
@@ -734,7 +707,7 @@ int _usbsend(usbdevice* kb, void* messages, size_t msg_len, int count, const cha
                 break;
             }
             // Stop immediately if the program is shutting down or hardware load is set to tryonce
-            if(reset_stop || hwload_mode != 2)
+            if(reset_stop)
                 return 0;
             // Retry as long as the result is temporary failure
             DELAY_LONG(kb);
@@ -771,7 +744,7 @@ int _usbrecv(usbdevice* kb, void* out_msg, size_t msg_len, uchar* in_msg, const 
             return 0;
         else if(res != -1)
             return res;
-        if(reset_stop || hwload_mode != 2)
+        if(reset_stop)
             return 0;
         if(!(kb->fwversion >= 0x120 || IS_V2_OVERRIDE(kb)) && kb->protocol != PROTO_BRAGI)
             DELAY_LONG(kb);

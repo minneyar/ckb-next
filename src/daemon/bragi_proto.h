@@ -18,6 +18,10 @@
 #define BRAGI_BRIGHTNESS    0x02
 #define BRAGI_MODE          0x03
 #define BRAGI_ANGLE_SNAP    0x07
+#define BRAGI_APP_VER       0x13
+#define BRAGI_BLD_VER       0x14
+#define BRAGI_RADIO_APP_VER 0x15
+#define BRAGI_RADIO_BLD_VER 0x16
 #define BRAGI_DPI_INDEX     0x1E
 #define BRAGI_DPI_MASK      0x1F
 #define BRAGI_DPI_X         0x21
@@ -26,6 +30,10 @@
 #define BRAGI_DPI1_COLOR    0x30
 #define BRAGI_DPI2_COLOR    0x31
 #define BRAGI_HWLAYOUT      0x41
+#define BRAGI_BRIGHTNESS_COARSE 0x44
+
+// Untested. Only known because CUE complained about it in its logs
+#define BRAGI_MAX_POLLRATE  0x96
 
 // 0x18-0x1A contain the DPI values for DPI0,1,2 0x23-0x28 contain the seperated DPIX and Y values for DPI0,1,2
 
@@ -54,6 +62,7 @@
 #define BRAGI_RES_ALT_LIGHTING  0x22
 // Secondary lighting packet
 #define BRAGI_RES_LIGHTING_EXTRA  0x2e
+#define BRAGI_RES_LIGHTING_MONOCHROME 0x10
 #define BRAGI_RES_PAIRINGID 0x05
 
 // ckb-specific macros
@@ -68,5 +77,8 @@
 
 // Notification IDs
 #define BRAGI_NOTIFICATION_CONNECTIONSTATUS 0x36
+
+// Errors
+#define BRAGI_ERROR_NOTSUPPORTED 0x05
 
 #endif // BRAGI_PROTO_H

@@ -77,7 +77,10 @@ static int setactive_bragi(usbdevice* kb, int active){
     }
 
     // The daemon will always send RGB data through handle 0 (), so go ahead and open it
-    int light = bragi_open_handle(kb, BRAGI_LIGHTING_HANDLE, BRAGI_RES_LIGHTING);
+    uchar res = BRAGI_RES_LIGHTING;
+    if(IS_MONOCHROME_DEV(kb))
+        res = BRAGI_RES_LIGHTING_MONOCHROME;
+    int light = bragi_open_handle(kb, BRAGI_LIGHTING_HANDLE, res);
     if(light < 0)
         return light;
 
@@ -113,11 +116,20 @@ static int setactive_bragi(usbdevice* kb, int active){
     return 0;
 }
 
+// Dear compiler, please emit a bswap and an shr. Thank you!
+static inline uint32_t bragi_fwver_bswap(uint32_t fwv){
+    return ((((fwv) & 0xff000000) >> 24) | (((fwv) & 0x00ff0000) >>  8) |
+        (((fwv) & 0x0000ff00) <<  8) | (((fwv) & 0x000000ff) << 24)) >> 8;
+}
+
 static int start_bragi_common(usbdevice* kb){
     kb->usbdelay = 10; // This might not be needed, but won't harm
-#warning "FIXME. Read more properties, such as fw version"
+    kb->pollrate = POLLRATE_UNKNOWN;
+    // Assume 1 ms unless told otherwise
+    kb->maxpollrate = POLLRATE_1MS;
+
     // Check if we're in HW mode, and if so, switch to software in order to read the properties/handles
-    int prop = bragi_get_property(kb, BRAGI_MODE);
+    int64_t prop = bragi_get_property(kb, BRAGI_MODE);
     if(prop < 0){
         ckb_fatal("ckb%d: Couldn't get bragi device mode. Aborting", INDEX_OF(kb, keyboard));
         return 1;
@@ -128,26 +140,45 @@ static int start_bragi_common(usbdevice* kb){
         bragi_set_property(kb, BRAGI_MODE, BRAGI_MODE_SOFTWARE);
     }
 
-#warning "Add error messages in case of failure"
+    // Read FW versions
+    kb->fwversion = kb->bldversion = kb->radioappversion = kb->radiobldversion = UINT32_MAX;
 
-    uchar pollrateLUT[5] = {-1};
-    pollrateLUT[BRAGI_POLLRATE_1MS] = 1;
-    pollrateLUT[BRAGI_POLLRATE_2MS] = 2;
-    pollrateLUT[BRAGI_POLLRATE_4MS] = 4;
-    pollrateLUT[BRAGI_POLLRATE_8MS] = 8;
+    prop = bragi_get_property(kb, BRAGI_APP_VER);
+    if(prop >= 0)
+        kb->fwversion = bragi_fwver_bswap(prop);
+
+    prop = bragi_get_property(kb, BRAGI_BLD_VER);
+    if(prop >= 0)
+        kb->bldversion = bragi_fwver_bswap(prop);
+
+    prop = bragi_get_property(kb, BRAGI_RADIO_APP_VER);
+    if(prop >= 0)
+        kb->radioappversion = bragi_fwver_bswap(prop);
+
+    prop = bragi_get_property(kb, BRAGI_RADIO_BLD_VER);
+    if(prop >= 0)
+        kb->radiobldversion = bragi_fwver_bswap(prop);
+
     // Get pollrate
     prop = bragi_get_property(kb, BRAGI_POLLRATE);
+    if(prop >= 0 && prop - 1 < POLLRATE_COUNT)
+        kb->pollrate = prop - 1;
 
-    uchar pollrate = prop;
-    if(pollrate > 4)
-        return 1;
-
-    kb->pollrate = pollrateLUT[pollrate];
+    // Get max pollrate
+    prop = bragi_get_property(kb, BRAGI_MAX_POLLRATE);
+    if(prop >= 0 && prop - 1 < POLLRATE_COUNT)
+        kb->maxpollrate = prop - 1;
 
     kb->features |= FEAT_ADJRATE;
     kb->features &= ~FEAT_HWLOAD;
 
     kb->usbdelay = USB_DELAY_DEFAULT;
+
+    // Check if the device supports fine or coarse brightness
+    if(bragi_get_property(kb, BRAGI_BRIGHTNESS) >= 0)
+        kb->brightness_mode = BRIGHTNESS_HARDWARE_FINE;
+    else if(bragi_get_property(kb, BRAGI_BRIGHTNESS_COARSE) >= 0)
+        kb->brightness_mode = BRIGHTNESS_HARDWARE_COARSE;
 
     // Read pairing ID
     if(IS_WIRELESS_DEV(kb)){
@@ -200,12 +231,12 @@ int start_keyboard_bragi(usbdevice* kb, int makeactive){
     if(start_bragi_common(kb))
         return 1;
 
-    int prop = bragi_get_property(kb, BRAGI_HWLAYOUT);
+    int64_t prop = bragi_get_property(kb, BRAGI_HWLAYOUT);
     // Physical layout detection.
     kb->layout = prop;
     // So far ISO and ANSI are known and match.
     if (kb->layout != LAYOUT_ANSI && kb->layout != LAYOUT_ISO) {
-        ckb_warn("Got unknown physical layout byte value %d, please file a bug report mentioning your keyboard's physical layout", prop);
+        ckb_warn("Got unknown physical layout byte value %" PRId64 ", please file a bug report mentioning your keyboard's physical layout", prop);
         kb->layout = LAYOUT_UNKNOWN;
     }
 
@@ -217,7 +248,9 @@ int start_keyboard_bragi(usbdevice* kb, int makeactive){
 
 static inline int bragi_dongle_probe(usbdevice* kb){
     // Ask the device for the mapping
-    int prop = bragi_get_property(kb, BRAGI_SUBDEVICE_BITFIELD);
+    int64_t prop = bragi_get_property(kb, BRAGI_SUBDEVICE_BITFIELD);
+    if(prop < 0)
+        return -1;
     bragi_update_dongle_subdevs(kb, prop);
     return 0;
 }
@@ -228,31 +261,13 @@ int start_dongle_bragi(usbdevice* kb, int makeactive){
     // FIXME: Does this make a difference?
     bragi_set_property(kb, BRAGI_MODE, BRAGI_MODE_SOFTWARE);
     // Probe for devices
+    // FIXME: Do something about this failing
     bragi_dongle_probe(kb);
     return 0;
 }
 
-static const uchar daemon_pollrate_to_bragi[9] = {
-    1,
-    BRAGI_POLLRATE_1MS,
-    BRAGI_POLLRATE_2MS,
-    1,
-    BRAGI_POLLRATE_4MS,
-    1,
-    1,
-    1,
-    BRAGI_POLLRATE_8MS,
-};
-
-int cmd_pollrate_bragi(usbdevice* kb, usbmode* dummy1, int dummy2, int rate, const char* dummy3){
-    (void)dummy1;
-    (void)dummy2;
-    (void)dummy3;
-
-    if(rate > 8 || rate < 0)
-        return 0;
-
-    if(bragi_set_property(kb, BRAGI_POLLRATE, daemon_pollrate_to_bragi[rate]))
+int cmd_pollrate_bragi(usbdevice* kb, pollrate_t rate){
+    if(bragi_set_property(kb, BRAGI_POLLRATE, rate + 1))
         return 1;
 
     kb->pollrate = rate;
@@ -278,8 +293,8 @@ int cmd_idle_bragi(usbdevice* kb, usbmode* dummy1, int dummy2, int dummy3, const
 }
 
 void bragi_get_battery_info(usbdevice* kb){
-    long int stat = bragi_get_property(kb, BRAGI_BATTERY_STATUS);
-    long int chg = bragi_get_property(kb, BRAGI_BATTERY_LEVEL);
+    int64_t stat = bragi_get_property(kb, BRAGI_BATTERY_STATUS);
+    int64_t chg = bragi_get_property(kb, BRAGI_BATTERY_LEVEL);
     if(stat < 0 || chg < 0){
         ckb_err("ckb%d: Failed to get bragi battery properties", INDEX_OF(kb, keyboard));
         return;

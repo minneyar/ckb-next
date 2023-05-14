@@ -9,8 +9,6 @@
 
 // Class for managing keyboard devices. Handles scanning devices from the daemon and creating/destroying Kb objects for each device.
 
-#define DAEMON_UNAVAILABLE_STR  "<unavailable>"
-
 class KbManager : public QObject
 {
     Q_OBJECT
@@ -23,24 +21,21 @@ public:
     static inline KbManager* kbManager()    { return _kbManager; }
 
     // ckb version info
-    static inline QString ckbGuiVersion()   { return _guiVersion; }
-    static inline QString ckbDaemonVersion(){ return _daemonVersion; }
-    // String (e.g. "alpha-v0.0.1" or "0.0.1") -> float. Daemon version returns INFINITY if not connected.
-    static float        parseVersionString(QString version);
-    static inline float ckbGuiVersionF()    { return parseVersionString(_guiVersion); }
-    static inline float ckbDaemonVersionF() { return _daemonVersion == DAEMON_UNAVAILABLE_STR ? INFINITY : parseVersionString(_daemonVersion); }
+    static inline CkbVersionNumber ckbGuiVersion()    { return _guiVersion; }
+    static inline CkbVersionNumber ckbDaemonVersion() { return _daemonVersion; }
+    //static inline float ckbDaemonVersionF() { return _daemonVersion == DAEMON_UNAVAILABLE_STR ? INFINITY : parseVersionString(_daemonVersion); }
 
     // List of all connected devices
     static const QSet<Kb*> devices()        { return _kbManager ? _kbManager->_devices : QSet<Kb*>(); }
 
     // Event timer for the driver. Created during init(). Starts ticking when fps() is called.
     // Use this for animations or other events which need to run at a high frame rate.
-    static inline QTimer* eventTimer()      { return _kbManager ? _kbManager->_eventTimer : 0; }
+    static inline QTimer* eventTimer()      { return _kbManager ? _kbManager->_eventTimer : nullptr; }
     // Sets the frame rate for the event timer
     static void fps(int framerate);
 
     // Timer for scanning the driver/device list. May also be useful for periodic GUI events. Created during init(), always runs at 10FPS.
-    static inline QTimer* scanTimer()       { return _kbManager ? _kbManager->_scanTimer : 0; }
+    static inline QTimer* scanTimer()       { return _kbManager ? _kbManager->_scanTimer : nullptr; }
     inline bool getDeviceTimerDimmed() { for(Kb* kb : _devices) if(kb->currentLight()->isTimerDimmed()) { return true; } return false; }
 
 #ifdef USE_XCB_SCREENSAVER
@@ -68,9 +63,9 @@ private slots:
 
 private:
     static KbManager* _kbManager;
-    static QString _guiVersion, _daemonVersion;
+    static CkbVersionNumber _guiVersion, _daemonVersion;
 
-    explicit KbManager(QObject* parent = 0);
+    explicit KbManager(QObject* parent = nullptr);
 
     QSet<Kb*> _devices;
     QTimer* _eventTimer, *_scanTimer, *_saveTimer;

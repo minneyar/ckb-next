@@ -6,7 +6,7 @@
 #include "keywidgetlayout.h"
 
 KbLightWidget::KbLightWidget(QWidget *parent) :
-    QWidget(parent), light(0),
+    QWidget(parent), light(nullptr),
     ui(new Ui::KbLightWidget), keyWidget(new KeyWidget(this))
 {
     ui->setupUi(this);
@@ -108,12 +108,12 @@ void KbLightWidget::newSelection(const QStringList& selection){
         ui->selLabel->setText(tr("Click to select"));
     } else if(count == 1) {
         // This is done this way to aid translation
-        if(!light->map().isKeyboard() || light->map().model() == KeyMap::K55)
+        if(!light->map().isKeyboard() || light->map().model() == KeyMap::K55 || light->map().model() == KeyMap::K55PRO)
             ui->selLabel->setText(tr("1 zone selected"));
         else
             ui->selLabel->setText(tr("1 key selected"));
     } else {
-        if(!light->map().isKeyboard() || light->map().model() == KeyMap::K55)
+        if(!light->map().isKeyboard() || light->map().model() == KeyMap::K55 || light->map().model() == KeyMap::K55PRO)
             ui->selLabel->setText(tr("%1 zones selected").arg(count));
         else
             ui->selLabel->setText(tr("%1 keys selected").arg(count));

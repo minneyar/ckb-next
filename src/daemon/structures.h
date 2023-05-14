@@ -183,7 +183,7 @@ typedef struct {
 #define HAS_ANY_FEATURE(kb, feat)   (!!((kb)->features & (feat)))
 
 // Bricked firmware?
-#define NEEDS_FW_UPDATE(kb) ((kb)->fwversion == 0 && HAS_FEATURES((kb), FEAT_FWUPDATE | FEAT_FWVERSION))
+#define NEEDS_FW_UPDATE(kb) ((kb)->needs_fw_update && HAS_FEATURES((kb), FEAT_FWUPDATE | FEAT_FWVERSION))
 
 // Lines per scroll (OSX only)
 #define SCROLL_ACCELERATED  0
@@ -217,6 +217,19 @@ typedef enum protocol_
     PROTO_NXP,
     PROTO_BRAGI,
 } protocol_t;
+
+typedef enum pollrate_ {
+    POLLRATE_UNKNOWN = -1,
+    POLLRATE_8MS,
+    POLLRATE_4MS,
+    POLLRATE_2MS,
+    POLLRATE_1MS,
+    POLLRATE_05MS,
+    POLLRATE_025MS,
+    POLLRATE_01MS,
+    POLLRATE_COUNT,
+} pollrate_t;
+
 
 // Structure for tracking keyboard/mouse devices
 #define KB_NAME_LEN         64
@@ -308,9 +321,9 @@ typedef struct usbdevice_ {
     // USB vendor and product IDs
     ushort vendor, product;
     // Firmware version
-    ushort fwversion;
-    // Poll rate (ms), or -1 if unsupported
-    char pollrate;
+    uint32_t fwversion, bldversion, radioappversion, radiobldversion;
+    // Poll rate and max
+    pollrate_t pollrate, maxpollrate;
     // Physical device layout; LAYOUT_NONE if irrelevant, LAYOUT_UNKNOWN if unimplemented.
     uchar layout;
     // USB protocol delay (ms)
@@ -364,6 +377,12 @@ typedef struct usbdevice_ {
     uchar bragi_out_ep;
     uchar bragi_in_ep;
     uchar wl_pairing_id[PAIR_ID_SIZE];
+    bool needs_fw_update;
+    enum {
+        BRIGHTNESS_SOFTWARE,
+        BRIGHTNESS_HARDWARE_FINE,
+        BRIGHTNESS_HARDWARE_COARSE,
+    } brightness_mode;
 } usbdevice;
 
 #endif  // STRUCTURES_H

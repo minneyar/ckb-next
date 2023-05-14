@@ -9,7 +9,7 @@
 
 static const int KEY_SIZE = 12;
 
-static QImage* m65Overlay = 0, *sabOverlay = 0, *scimOverlay = 0, *harpOverlay = 0, *glaiveOverlay = 0, *polarisOverlay = 0, *katarOverlay = 0, *m95Overlay = 0, *ironclawOverlay = 0, *nightswordOverlay = 0, *darkCoreOverlay = 0, *ironclawWirelessOverlay = 0, *glaiveproOverlay = 0,* m55Overlay = 0;
+static QImage* m65Overlay= nullptr, *sabOverlay= nullptr, *scimOverlay= nullptr, *harpOverlay= nullptr, *glaiveOverlay= nullptr, *polarisOverlay= nullptr, *katarOverlay= nullptr, *m95Overlay= nullptr, *ironclawOverlay= nullptr, *nightswordOverlay= nullptr, *darkCoreOverlay= nullptr, *ironclawWirelessOverlay= nullptr, *glaiveproOverlay= nullptr,* m55Overlay= nullptr;
 
 // KbLight.cpp
 extern QRgb monoRgb(float r, float g, float b);
@@ -108,7 +108,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
 
     if(!keyMap.isKeyboard()){
         // Draw mouse overlays
-        const QImage* overlay = 0;
+        const QImage* overlay = nullptr;
         float xpos = 0.f, ypos = -2.f;
         if(model == KeyMap::M65 || model == KeyMap::M65E){
             if(!m65Overlay)
@@ -129,7 +129,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
             if(!harpOverlay)
                 harpOverlay = new QImage(":/img/overlay_harpoon.png");
             overlay = harpOverlay;
-            xpos = 3.5f;
+            xpos = 4.3f;
         } else if(model == KeyMap::GLAIVE){
             if(!glaiveOverlay)
                 glaiveOverlay = new QImage(":/img/overlay_glaive.png");
@@ -144,7 +144,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
             if(!katarOverlay)
                 katarOverlay = new QImage(":/img/overlay_katar.png");
             overlay = katarOverlay;
-            xpos = 3.5f;
+            xpos = 3.7f;
             ypos = -2.f;
         } else if(model == KeyMap::DARKCORE){
             if(!darkCoreOverlay)
@@ -163,7 +163,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
             if(!m95Overlay)
                 m95Overlay = new QImage(":/img/overlay_m95.png");
             overlay = m95Overlay;
-            xpos = 2.f;
+            xpos = 35.3f;
         } else if(model == KeyMap::IRONCLAW){
             if(!ironclawOverlay)
                 ironclawOverlay = new QImage(":/img/overlay_ironclaw.png");
@@ -183,7 +183,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
             if(!m55Overlay)
                 m55Overlay = new QImage(":/img/overlay_m55.png");
             overlay = m55Overlay;
-            xpos = 2.f;
+            xpos = 5.7f;
         }
 
         if(!overlay){
@@ -303,7 +303,6 @@ void KeyWidget::paintEvent(QPaintEvent*){
             if(!strcmp(key.name, "enter")){
                 if(key.height == 24){
                     // ISO enter key isn't rectangular
-                    y = key.y + 1.f;
                     h = 10.f;
                     bgPainter.drawRect(QRectF((x + w - 13.f) * scale, y * scale, 13.f * scale, 22.f * scale));
                 } else {
@@ -408,7 +407,7 @@ void KeyWidget::paintEvent(QPaintEvent*){
                     drawTopLeftCorner(&decPainter, kx, ky, kw, kh, scale);
                 } else
                     decPainter.drawRect(QRectF(kx * scale, ky * scale, kw * scale, kh * scale));
-            } else if (model == KeyMap::K55)
+            } else if (model == KeyMap::K55 || model == KeyMap::K55PRO)
                 decPainter.drawRect(QRectF(x * scale, y * scale, w * scale, h * scale));
             else if (model == KeyMap::K70_TKL && key.friendlyName() == "Logo")
                 drawLogo(&key, &decPainter, offX , offY, scale);

@@ -5,6 +5,7 @@
 #include "extrasettingswidget.h"
 #include <QProcess>
 #include <QProgressDialog>
+#include "ckbversionnumber.h"
 
 namespace Ui {
 class SettingsWidget;
@@ -15,11 +16,11 @@ class SettingsWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit SettingsWidget(QWidget *parent = 0);
+    explicit SettingsWidget(QWidget *parent = nullptr);
     ~SettingsWidget();
 
     // Set text labels
-    void setVersion(const QString& version);
+    void setVersion(const CkbVersionNumber& version);
     void setStatus(const QString& text);
 
     // Poll for setting updates and save (if necessary)

@@ -117,6 +117,7 @@ if (MACOS OR LINUX)
               ckbsettingswriter.cpp
               ckbupdater.cpp
               ckbupdaterwidget.cpp
+              ckbversionnumber.cpp
               clickeventpushbutton.cpp
               colorbutton.cpp
               colormap.cpp
@@ -172,6 +173,7 @@ if (MACOS OR LINUX)
               ckbsystemtrayicon.h
               ckbupdater.h
               ckbupdaterwidget.h
+              ckbversionnumber.h
               clickeventpushbutton.h
               colorbutton.h
               colormap.h
@@ -558,7 +560,8 @@ set_target_properties(
 target_compile_options(
     ckb-next
         PRIVATE
-          "${CKB_NEXT_COMMON_COMPILE_FLAGS}")
+          "${CKB_NEXT_COMMON_COMPILE_FLAGS}"
+          "${CKB_NEXT_EXTRA_CXX_FLAGS}")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(

@@ -9,6 +9,27 @@
 #include <QElapsedTimer>
 #include <limits>
 #include "batterysystemtrayicon.h"
+#include "ckbversionnumber.h"
+
+struct firmware_t {
+    CkbVersionNumber app;
+    CkbVersionNumber bld;
+    CkbVersionNumber radioapp;
+    CkbVersionNumber radiobld;
+    void parse(const QString& str){
+        // KeepEmptyParts is the default
+        QVector<QStringRef> split = str.leftRef(str.size()-1).split(QChar('\n'));
+        // Old < 0.5.0 format (NXP and legacy)
+        if(split.size() == 1){
+            app = CkbVersionNumber(split.at(0).toString());
+        } else if (split.size() >= 4) {
+            app = CkbVersionNumber(split.at(0).toString());
+            bld = CkbVersionNumber(split.at(1).toString());
+            radioapp = CkbVersionNumber(split.at(2).toString());
+            radiobld = CkbVersionNumber(split.at(3).toString());
+        }
+    }
+};
 
 // Class for managing devices
 class Kb : public QThread
@@ -19,11 +40,25 @@ public:
     QString usbModel, usbSerial;
     // Device information
     QStringList features;
-    QString firmware, pollrate;
+
+    enum pollrate_t {
+        POLLRATE_UNKNOWN = -1,
+        POLLRATE_8MS,
+        POLLRATE_4MS,
+        POLLRATE_2MS,
+        POLLRATE_1MS,
+        POLLRATE_05MS,
+        POLLRATE_025MS,
+        POLLRATE_01MS,
+        POLLRATE_COUNT,
+    };
+    pollrate_t pollrate, maxpollrate;
+
     bool monochrome;
     ushort productID;
     bool hwload;
     bool adjrate;
+    firmware_t firmware;
 
     // Keyboard model
     inline KeyMap::Model    model() const                       { return _model; }
@@ -67,13 +102,13 @@ public:
     void                            profiles(const QList<KbProfile*>& newProfiles)  { _needsSave = true; _profiles = newProfiles; }
     void                            appendProfile(KbProfile* newProfile)            { _needsSave = true; _profiles.append(newProfile); }
     inline int                      indexOf(KbProfile* profile)                     { return _profiles.indexOf(profile); }
-    inline KbProfile*               find(const QUuid& id)                           { foreach(KbProfile* profile, _profiles) { if(profile->id().guid == id) return profile; } return 0; }
+    inline KbProfile*               find(const QUuid& id)                           { foreach(KbProfile* profile, _profiles) { if(profile->id().guid == id) return profile; } return nullptr; }
 
     // Currently-selected mode
     inline KbMode*  currentMode()   { return _currentMode; }
-    inline KbLight* currentLight()  { return !_currentMode ? 0 : _currentMode->light(); }
-    inline KbBind*  currentBind()   { return !_currentMode ? 0 : _currentMode->bind(); }
-    inline KbPerf*  currentPerf()   { return !_currentMode ? 0 : _currentMode->perf(); }
+    inline KbLight* currentLight()  { return _currentMode ? _currentMode->light() : nullptr; }
+    inline KbBind*  currentBind()   { return _currentMode ? _currentMode->bind() : nullptr; }
+    inline KbPerf*  currentPerf()   { return _currentMode ? _currentMode->perf() : nullptr; }
 
     // Update selection
     void        setCurrentProfile(KbProfile* profile);

@@ -342,65 +342,24 @@
        <property name="bottomMargin">
         <number>6</number>
        </property>
-       <item row="2" column="0">
-        <widget class="QLabel" name="layoutLabel">
-         <property name="text">
-          <string>Layout:</string>
+       <item row="1" column="0" colspan="3">
+        <widget class="Line" name="line">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="NoWheelComboBox" name="pollRateBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::StrongFocus</enum>
-           </property>
-           <item>
-            <property name="text">
-             <string notr="true">1 ms</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string notr="true">2 ms</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string notr="true">4 ms</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string notr="true">8 ms</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_9">
+       <item row="7" column="0">
+        <widget class="QLabel" name="wlLabel">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -408,11 +367,11 @@
           </size>
          </property>
          <property name="text">
-          <string>Firmware version:</string>
+          <string>Wireless version:</string>
          </property>
         </widget>
        </item>
-       <item row="9" column="2">
+       <item row="12" column="2">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -425,6 +384,31 @@
          </property>
         </spacer>
        </item>
+       <item row="0" column="0" colspan="3">
+        <widget class="QLabel" name="devLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>23</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Device</string>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_4">
          <property name="minimumSize">
@@ -435,85 +419,6 @@
          </property>
          <property name="text">
           <string>Serial Number:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="pollLabel2">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>34</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Poll rate:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QLabel" name="fwLabel">
-         <property name="cursor">
-          <cursorShape>IBeamCursor</cursorShape>
-         </property>
-         <property name="text">
-          <string>N/A</string>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="2">
-        <layout class="QHBoxLayout" name="fwUpdLayout">
-         <item>
-          <widget class="QPushButton" name="fwUpdButton">
-           <property name="text">
-            <string>Check for updates</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="5" column="1">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>1</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0" colspan="3">
-        <widget class="Line" name="line">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
@@ -561,6 +466,108 @@
          </item>
         </layout>
        </item>
+       <item row="4" column="2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="NoWheelComboBox" name="pollRateBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::StrongFocus</enum>
+           </property>
+           <item>
+            <property name="text">
+             <string notr="true">0.1 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">0.25 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">0.5 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">1 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">2 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">4 ms</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string notr="true">8 ms</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="pollLabel2">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Poll rate:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="2">
+        <layout class="QHBoxLayout" name="fwUpdLayout">
+         <item>
+          <widget class="QPushButton" name="fwUpdButton">
+           <property name="text">
+            <string>Check for updates</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
        <item row="3" column="2">
         <widget class="QLabel" name="serialLabel">
          <property name="cursor">
@@ -570,36 +577,24 @@
           <string>N/A</string>
          </property>
          <property name="textInteractionFlags">
-          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          <set>Qt::TextSelectableByMouse</set>
          </property>
         </widget>
        </item>
-       <item row="0" column="0" colspan="3">
-        <widget class="QLabel" name="devLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>23</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+       <item row="7" column="2">
+        <widget class="QLabel" name="wlValLabel">
+         <property name="cursor">
+          <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="text">
-          <string>Device</string>
+          <string>N/A</string>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="fwUpdLabel">
          <property name="minimumSize">
           <size>
@@ -612,7 +607,14 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="2" column="0">
+        <widget class="QLabel" name="layoutLabel">
+         <property name="text">
+          <string>Layout:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
         <widget class="QLabel" name="batteryLabel">
          <property name="minimumSize">
           <size>
@@ -626,6 +628,32 @@
         </widget>
        </item>
        <item row="6" column="2">
+        <widget class="QLabel" name="bldValLabel">
+         <property name="cursor">
+          <cursorShape>IBeamCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>N/A</string>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLabel" name="fwLabel">
+         <property name="cursor">
+          <cursorShape>IBeamCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>N/A</string>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="2">
         <layout class="QGridLayout" name="batteryLayout">
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
@@ -644,6 +672,9 @@
            <property name="text">
             <string/>
            </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByMouse</set>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -655,6 +686,74 @@
          </item>
         </layout>
        </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="bldLabel">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Bootloader version:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Firmware version:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="wlBldLabel">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Wireless Bootloader version:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="2">
+        <widget class="QLabel" name="wlBldValLabel">
+         <property name="cursor">
+          <cursorShape>IBeamCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>N/A</string>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>1</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -662,6 +761,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>NoWheelComboBox</class>
+   <extends>QComboBox</extends>
+   <header>nowheelcombobox.h</header>
+  </customwidget>
   <customwidget>
    <class>KbLightWidget</class>
    <extends>QWidget</extends>
@@ -690,11 +794,6 @@
    <class>ModeListWidget</class>
    <extends>QTableView</extends>
    <header>modelistwidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>NoWheelComboBox</class>
-   <extends>QComboBox</extends>
-   <header>nowheelcombobox.h</header>
   </customwidget>
   <customwidget>
    <class>LegacyLightWidget</class>
