@@ -26,9 +26,7 @@ keypatch m55patch[] = {
 #define M55PATCH_LEN sizeof(m55patch)/sizeof(*m55patch)
 
 keypatch k70tklpatch[] = {
-    { 1, "logo",    1, KEY_CORSAIR },
     { 114, "lock",    114, KEY_CORSAIR },
-    { 128, "profswitch",    128, KEY_CORSAIR },
 };
 #define K70TKLPATCH_LEN sizeof(k70tklpatch)/sizeof(*k70tklpatch)
 

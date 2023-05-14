@@ -246,13 +246,13 @@ static inline void patchABNT2(QHash<QString, Key>& map){
 
 
 static const Key K70TklTopRow[] = {
-    {0, "Stop", "stop", K70_X_START - 37, 0, 12, 8, true, true},
-    {0, "Previous", "prev", K70_X_START - 26, 0, 12, 8, true, true},
-    {0, "Play/Pause", "play", K70_X_START - 15, 0, 12, 8, true, true},
-    {0, "Next", "next", K70_X_START - 4, 0, 12, 8, true, true},
-    {0, "Logo", "logo", 140 - K70_X_START, 0, 12, 12, true, false},
-    {0, "Profile Switch", "profswitch", 178 - K70_X_START, 0, 12, 8, true, true},
-    {0, "Mute", "mute", 222 - K70_X_START, 0, 12, 8, true, true},
+    {nullptr, "Stop", "stop", K70_X_START - 37, 0, 12, 8, true, true},
+    {nullptr, "Previous", "prev", K70_X_START - 26, 0, 12, 8, true, true},
+    {nullptr, "Play/Pause", "play", K70_X_START - 15, 0, 12, 8, true, true},
+    {nullptr, "Next", "next", K70_X_START - 4, 0, 12, 8, true, true},
+    {nullptr, "Logo", "logo", 140 - K70_X_START, 0, 12, 12, true, false},
+    {nullptr, "Profile Switch", "profswitch", 178 - K70_X_START, 0, 12, 8, true, true},
+    {nullptr, "Mute", "mute", 222 - K70_X_START, 0, 12, 8, true, true},
 };
 #define K70_TKL_TOP_COUNT (sizeof(K70TklTopRow) / sizeof(Key))
 
@@ -756,26 +756,20 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         break;
     }
     case KeyMap::K70_TKL:{
-        map = getMap(KeyMap::K70, layout);
-        // Very similar to the K63 but with slightly different media button positions
-        QMutableHashIterator<QString, Key> i(map);
-        while(i.hasNext()){
-            i.next();
-            if(i.value().x >= K65_WIDTH)
-                i.remove();
-        }
+        // Same width as the K63 but with a top row more like the K70
+        map = getMap(KeyMap::K63, layout);
         for(const Key* key = K70TklTopRow; key < K70TklTopRow + K70_TKL_TOP_COUNT; key++)
             map[key->name] = *key;
 
         map.remove("rwin");
+        map.remove("voldn");
+        map.remove("volup");
         map["fn"] = KStrafeKeys[3];
         map["fn"].x -= 12;
         map["light"].x = 190 - K70_X_START;
         map["light"].height = 8;
         map["lock"].x = 202 - K70_X_START;
         map["lock"].height = 8;
-
-        // Done!
         break;
     }
     case KeyMap::STRAFE_MK2:{

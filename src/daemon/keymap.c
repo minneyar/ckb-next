@@ -326,7 +326,7 @@ the G keys after G6, if they ever make another keyboard with them
 */
 const key keymap_bragi[N_KEYS_BRAGI_PATCH] = {
     { 0,                -1, KEY_NONE },
-    { 0,                -1, KEY_NONE },
+    { "logo",            1, KEY_CORSAIR },
     { 0,                -1, KEY_NONE },
     { 0,                -1, KEY_NONE },
     { "a",               4, KEY_A },
@@ -439,7 +439,7 @@ const key keymap_bragi[N_KEYS_BRAGI_PATCH] = {
     { "ralt",          111, KEY_RIGHTALT },
     { "rwin",          112, KEY_RIGHTMETA },
     { "light",         113, KEY_CORSAIR },
-    { "lock",            1, KEY_CORSAIR },
+    { 0,                -1, KEY_NONE },
     { 0,                -1, KEY_NONE },
     { 0,                -1, KEY_NONE },
     { 0,                -1, KEY_NONE },
@@ -453,7 +453,7 @@ const key keymap_bragi[N_KEYS_BRAGI_PATCH] = {
     { "next",          125, KEY_NEXTSONG },
     { "prev",          126, KEY_PREVIOUSSONG },
     { "mr",             -1, KEY_CORSAIR },
-    { 0,                -1, KEY_NONE },
+    { "profswitch",    128, KEY_CORSAIR },
     { 0,                -1, KEY_NONE },
     { 0,                -1, KEY_NONE },
     { "g1",            131, KEY_CORSAIR },
