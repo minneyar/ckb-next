@@ -58,11 +58,11 @@
 
 // Resources (used to get handles)
 #define BRAGI_RES_LIGHTING  0x01
+#define BRAGI_RES_LIGHTING_MONOCHROME 0x10
 // Used for devices that have RGBRGBRGB packets instead of RRRGGGBBB
 #define BRAGI_RES_ALT_LIGHTING  0x22
 // Secondary lighting packet
 #define BRAGI_RES_LIGHTING_EXTRA  0x2e
-#define BRAGI_RES_LIGHTING_MONOCHROME 0x10
 #define BRAGI_RES_PAIRINGID 0x05
 
 // ckb-specific macros
